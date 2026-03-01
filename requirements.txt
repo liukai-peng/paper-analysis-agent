@@ -1,0 +1,27 @@
+# Web框架
+streamlit>=1.28.0
+
+# 数据处理
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# PDF处理
+pymupdf>=1.23.0
+
+# LLM API
+openai>=1.0.0
+
+# 加密
+cryptography>=41.0.0
+
+# MySQL数据库
+pymysql>=1.1.0
+
+# MongoDB数据库
+pymongo>=4.6.0
+
+# Redis缓存
+redis>=5.0.0
+
+# 环境变量
+python-dotenv>=1.0.0
