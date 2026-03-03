@@ -8,14 +8,17 @@ class ConfigManager:
     """配置管理器，负责安全存储和读取配置"""
     
     def __init__(self, config_file: str = "config.json"):
-        self.config_file = config_file
+        # 使用绝对路径，确保在任何工作目录下都能找到配置文件
+        import os
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_file = os.path.join(self.base_dir, config_file)
         self.config = self._load_config()
         self.key = self._get_or_create_key()
         self.cipher = Fernet(self.key)
     
     def _get_or_create_key(self) -> bytes:
         """获取或创建加密密钥"""
-        key_file = "secret.key"
+        key_file = os.path.join(self.base_dir, "secret.key")
         
         if os.path.exists(key_file):
             with open(key_file, "rb") as f:

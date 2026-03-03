@@ -38,7 +38,7 @@ COORDINATOR_PROMPT = """
 {
   "document_type": "文献类型",
   "title": "文献标题",
-  "authors": "作者列表",
+  "authors": ["作者1", "作者2", "作者3"],
   "year": "发表年份",
   "journal": "期刊名称",
   "research_field": "研究领域",
@@ -78,11 +78,19 @@ class CoordinatorAgent(Agent):
             json_str = json_match.group(0)
             try:
                 result = json.loads(json_str)
+                # 处理 authors 字段，确保它是列表
+                authors = result.get("authors", [])
+                if isinstance(authors, str):
+                    # 如果是字符串，按逗号分割
+                    authors = [a.strip() for a in authors.split(",") if a.strip()]
+                elif not isinstance(authors, list):
+                    authors = []
+                
                 return CoordinatorToFirstPass(
                     document_type=result.get("document_type", "未知"),
                     full_text=full_text,
                     title=result.get("title", "未知"),
-                    authors=result.get("authors", []),
+                    authors=authors,
                     year=result.get("year", ""),
                     journal=result.get("journal", ""),
                     research_field=result.get("research_field", ""),

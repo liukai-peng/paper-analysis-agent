@@ -47,29 +47,30 @@ class CoordinatorToFirstPass(BaseModel):
     one_sentence_summary: str = ""
 
 class FirstPassToSecondPass(BaseModel):
-    phenomenon: Dict[str, str] = {}
-    tools: Dict[str, str] = {}
+    phenomenon: Dict[str, Any] = {}
+    tools: Dict[str, Any] = {}
+    key_concepts: List[Dict[str, str]] = []
     contribution: Dict[str, str] = {}
-    writing_framework: Dict[str, str] = {}
+    writing_framework: Dict[str, Any] = {}
     useful_expressions: Dict[str, Any] = {}
     full_text: str
 
 class SecondPassToThirdPass(BaseModel):
-    research_question: Dict[str, str] = {}
-    literature_review: Dict[str, str] = {}
-    methodology: Dict[str, str] = {}
-    findings: Dict[str, str] = {}
-    limitations: Dict[str, str] = {}
+    research_question: Dict[str, Any] = {}
+    literature_review: Dict[str, Any] = {}
+    methodology: Dict[str, Any] = {}
+    findings: Dict[str, Any] = {}
+    limitations: Dict[str, Any] = {}
     writing_techniques: Dict[str, Any] = {}
     full_text: str
 
 class ThirdPassToNoteGenerator(BaseModel):
-    theoretical_dialogue: Dict[str, str] = {}
-    method_evaluation: Dict[str, str] = {}
-    finding_significance: Dict[str, str] = {}
-    theory_connection: Dict[str, str] = {}
-    research_connections: Dict[str, str] = {}
-    research_inspiration: Dict[str, str] = {}
+    theoretical_dialogue: Dict[str, Any] = {}
+    method_evaluation: Dict[str, Any] = {}
+    finding_significance: Dict[str, Any] = {}
+    theory_connection: Dict[str, Any] = {}
+    research_connections: Dict[str, Any] = {}
+    research_inspiration: Dict[str, Any] = {}
     full_text: str
 
 class NoteGeneratorResponse(BaseModel):

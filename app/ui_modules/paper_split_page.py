@@ -594,22 +594,126 @@ def render_learning_step_2(result: Dict[str, Any]):
     with st.expander("📍 研究现象", expanded=True):
         phenomenon = first_pass.get("phenomenon", {})
         st.markdown(f"**描述**: {phenomenon.get('description', '')}")
+        
+        plain_exp = phenomenon.get('plain_explanation', '')
+        if plain_exp:
+            st.info(f"💡 **通俗解释**: {plain_exp}")
+        
+        real_life = phenomenon.get('real_life_examples', [])
+        if real_life:
+            st.markdown("**生活实例**:")
+            for ex in real_life:
+                st.markdown(f"- {ex}")
+        
         st.markdown(f"**重要性**: {phenomenon.get('importance', '')}")
         st.markdown(f"**背景**: {phenomenon.get('background', '')}")
 
-    with st.expander("🔧 理论工具"):
+    with st.expander("🔧 理论工具", expanded=True):
         tools = first_pass.get("tools", {})
-        st.markdown(f"**理论框架**: {tools.get('theoretical_framework', '')}")
-        st.markdown(f"**研究方法**: {tools.get('research_method', '')}")
-        st.markdown(f"**数据来源**: {tools.get('data_source', '')}")
+        tf = tools.get("theoretical_framework", {})
+        
+        if isinstance(tf, dict):
+            st.markdown(f"### 📚 理论框架: {tf.get('name', '')}")
+            st.markdown(f"**创始人**: {tf.get('founder', '')}")
+            st.markdown(f"**核心命题**: {tf.get('core_propositions', '')}")
+            st.markdown(f"**解释的现象**: {tf.get('what_it_explains', '')}")
+            st.markdown(f"**局限性**: {tf.get('limitations', '')}")
+            st.markdown(f"**为什么适合本研究**: {tf.get('why_suitable', '')}")
+        else:
+            st.markdown(f"**理论框架**: {tf}")
+        
+        prev_theories = tools.get("previous_theories", [])
+        if prev_theories and isinstance(prev_theories, list):
+            st.markdown("### 📖 借鉴的前人理论")
+            for theory in prev_theories:
+                if isinstance(theory, dict):
+                    st.markdown(f"- **{theory.get('name', '')}**: {theory.get('core_idea', '')}")
+                else:
+                    st.markdown(f"- {theory}")
+        
+        rm = tools.get("research_method", {})
+        if isinstance(rm, dict):
+            st.markdown("### 🔬 研究方法")
+            st.markdown(f"**类型**: {rm.get('type', '')}")
+            st.markdown(f"**为什么适合**: {rm.get('why_suitable', '')}")
+            st.markdown(f"**优势**: {rm.get('advantages', '')}")
+        else:
+            st.markdown(f"**研究方法**: {rm}")
+        
+        ds = tools.get("data_source", {})
+        if isinstance(ds, dict):
+            st.markdown("### 📊 数据来源")
+            st.markdown(f"**描述**: {ds.get('description', '')}")
+            st.markdown(f"**代表性**: {ds.get('representativeness', '')}")
+        else:
+            st.markdown(f"**数据来源**: {ds}")
+
+    key_concepts = first_pass.get("key_concepts", [])
+    if key_concepts:
+        with st.expander("🔑 关键概念详解", expanded=True):
+            st.markdown("*这是新手最需要理解的部分！每个概念都有详细解释*")
+            for i, concept in enumerate(key_concepts, 1):
+                st.markdown(f"### 概念 {i}: {concept.get('name', '')}")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**学术定义**: {concept.get('academic_definition', '')}")
+                    st.markdown(f"**本研究中的含义**: {concept.get('study_specific_meaning', '')}")
+                with col2:
+                    st.info(f"💡 **通俗解释**: {concept.get('plain_explanation', '')}")
+                    st.success(f"🎯 **类比/例子**: {concept.get('analogy_or_example', '')}")
+                st.markdown(f"**与相关概念的区别**: {concept.get('distinction_from_related', '')}")
+                st.markdown(f"**如何测量**: {concept.get('how_measured', '')}")
+                st.markdown("---")
 
     with st.expander("🏆 核心贡献"):
         contribution = first_pass.get("contribution", {})
         st.markdown(f"**主要发现**: {contribution.get('main_finding', '')}")
         st.markdown(f"**理论贡献**: {contribution.get('theoretical_contribution', '')}")
-        st.markdown(f"**实践意义**: {contribution.get('practical_significance', '')}")
+        st.markdown(f"**实践意义**: {contribution.get('practical_implication', '')}")
 
-    # 导航按钮
+    wf = first_pass.get("writing_framework", {})
+    if wf:
+        with st.expander("✍️ 写作框架学习"):
+            st.markdown(f"**标题设计**: {wf.get('title_analysis', '')}")
+            if wf.get('title_why_good'):
+                st.info(f"💡 **好在哪里**: {wf.get('title_why_good', '')}")
+            st.markdown(f"**摘要结构**: {wf.get('abstract_structure', '')}")
+            if wf.get('abstract_logic'):
+                st.markdown(f"**组织逻辑**: {wf.get('abstract_logic', '')}")
+            st.markdown(f"**关键词选择**: {wf.get('keywords_analysis', '')}")
+            if wf.get('keywords_why'):
+                st.markdown(f"**为什么选这几个**: {wf.get('keywords_why', '')}")
+            st.markdown(f"**引言开篇**: {wf.get('introduction_opening', '')}")
+            if wf.get('introduction_hook'):
+                st.success(f"🎣 **钩子**: {wf.get('introduction_hook', '')}")
+
+    ue = first_pass.get("useful_expressions", {})
+    if ue:
+        with st.expander("💬 值得学习的表达"):
+            academic = ue.get("academic_sentences", [])
+            if academic:
+                st.markdown("### 学术表达句式")
+                for item in academic:
+                    if isinstance(item, dict):
+                        st.markdown(f"- {item.get('sentence', '')}")
+                        if item.get('why_good'):
+                            st.markdown(f"  - 💡 **好在哪里**: {item.get('why_good', '')}")
+                        if item.get('usage_scenario'):
+                            st.markdown(f"  - 📝 **适用场景**: {item.get('usage_scenario', '')}")
+                    else:
+                        st.markdown(f"- {item}")
+            
+            transitions = ue.get("transition_sentences", [])
+            if transitions:
+                st.markdown("### 过渡句")
+                for item in transitions:
+                    if isinstance(item, dict):
+                        st.markdown(f"- {item.get('sentence', '')}")
+                        if item.get('why_good'):
+                            st.markdown(f"  - 💡 **好在哪里**: {item.get('why_good', '')}")
+                    else:
+                        st.markdown(f"- {item}")
+
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
@@ -630,31 +734,194 @@ def render_learning_step_3(result: Dict[str, Any]):
 
     second_pass = result.get("second_pass", {})
 
-    # 研究问题
+    rq = second_pass.get("research_question", {})
     with st.expander("❓ 研究问题", expanded=True):
-        rq = second_pass.get("research_question", {})
-        st.markdown(f"**原文**: {rq.get('original_text', '')}")
+        st.markdown(f"**原文摘录**: {rq.get('original_text', '')}")
         st.markdown(f"**写作技巧**: {rq.get('writing_technique', '')}")
         st.markdown(f"**学习要点**: {rq.get('learning_points', '')}")
+        
+        core_q = rq.get('core_question', '')
+        if core_q:
+            st.markdown("---")
+            st.markdown("### 📋 研究问题层次分析")
+            st.success(f"🎯 **核心研究问题**: {core_q}")
+            
+            sub_qs = rq.get('sub_questions', [])
+            if sub_qs:
+                st.markdown("**子问题**:")
+                for sq in sub_qs:
+                    st.markdown(f"- {sq}")
+            
+            logic = rq.get('question_logic', '')
+            if logic:
+                st.markdown(f"**问题逻辑关系**: {logic}")
 
-    # 文献综述
-    with st.expander("📚 文献综述"):
-        lr = second_pass.get("literature_review", {})
+    lr = second_pass.get("literature_review", {})
+    with st.expander("📚 文献综述", expanded=True):
         st.markdown(f"**覆盖范围**: {lr.get('coverage', '')}")
         st.markdown(f"**组织结构**: {lr.get('organization', '')}")
         st.markdown(f"**缺口识别**: {lr.get('gap_identification', '')}")
         st.markdown(f"**缺口技巧**: {lr.get('gap_technique', '')}")
+        
+        topic_intro = lr.get('topic_introduction', '')
+        if topic_intro:
+            st.markdown("---")
+            st.markdown("### ✍️ 文献综述写作技巧")
+            st.markdown(f"**如何引出主题**: {topic_intro}")
+            st.markdown(f"**如何评价前人**: {lr.get('evaluation_style', '')}")
+            st.markdown(f"**过渡到自己研究**: {lr.get('transition_technique', '')}")
 
-    # 研究方法
-    with st.expander("🔬 研究方法"):
-        method = second_pass.get("methodology", {})
-        st.markdown(f"**研究设计**: {method.get('research_design', '')}")
-        st.markdown(f"**变量**: {method.get('variables', '')}")
-        st.markdown(f"**抽样**: {method.get('sampling', '')}")
-        st.markdown(f"**数据分析**: {method.get('data_analysis', '')}")
-        st.markdown(f"**写作特点**: {method.get('writing_features', '')}")
+    method = second_pass.get("methodology", {})
+    with st.expander("🔬 研究方法", expanded=True):
+        st.markdown("*这是新手最需要详细学习的部分！*")
+        
+        rd = method.get("research_design", {})
+        if isinstance(rd, dict):
+            st.markdown("### 📐 研究设计")
+            st.markdown(f"**类型**: {rd.get('type', '')}")
+            st.markdown(f"**为什么选择**: {rd.get('why_chosen', '')}")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.success(f"✅ **优势**: {rd.get('strengths', '')}")
+            with col2:
+                st.warning(f"⚠️ **劣势**: {rd.get('weaknesses', '')}")
+        else:
+            st.markdown(f"**研究设计**: {rd}")
+        
+        variables = method.get("variables", {})
+        if variables:
+            st.markdown("### 📊 变量分析")
+            
+            iv = variables.get("independent", {})
+            if isinstance(iv, dict):
+                st.markdown(f"#### 自变量: {iv.get('name', '')}")
+                st.markdown(f"- **操作化**: {iv.get('operationalization', '')}")
+                st.markdown(f"- **测量方式**: {iv.get('measurement', '')}")
+                if iv.get('explanation'):
+                    st.info(f"💡 {iv.get('explanation', '')}")
+            
+            dv = variables.get("dependent", {})
+            if isinstance(dv, dict):
+                st.markdown(f"#### 因变量: {dv.get('name', '')}")
+                st.markdown(f"- **测量方式**: {dv.get('measurement', '')}")
+                if dv.get('explanation'):
+                    st.info(f"💡 {dv.get('explanation', '')}")
+            
+            controls = variables.get("control", [])
+            if controls:
+                st.markdown("#### 控制变量")
+                for cv in controls:
+                    if isinstance(cv, dict):
+                        st.markdown(f"- **{cv.get('name', '')}**: {cv.get('why_control', '')}")
+                    else:
+                        st.markdown(f"- {cv}")
+        
+        sampling = method.get("sampling", {})
+        if isinstance(sampling, dict):
+            st.markdown("### 👥 样本信息")
+            st.markdown(f"**样本量**: {sampling.get('sample_size', '')}")
+            st.markdown(f"**抽样方法**: {sampling.get('sampling_method', '')}")
+            st.markdown(f"**代表性分析**: {sampling.get('representativeness', '')}")
+        else:
+            st.markdown(f"**抽样**: {sampling}")
+        
+        da = method.get("data_analysis", {})
+        if isinstance(da, dict):
+            st.markdown("### 📈 数据分析")
+            st.markdown(f"**描述性统计**: {da.get('descriptive', '')}")
+            st.markdown(f"**推断性统计**: {da.get('inferential', '')}")
+            st.markdown(f"**统计软件**: {da.get('software', '')}")
+        else:
+            st.markdown(f"**数据分析**: {da}")
+        
+        wf = method.get("writing_features", {})
+        if isinstance(wf, dict):
+            st.markdown("### ✍️ 方法部分写作特点")
+            patterns = wf.get('sentence_patterns', [])
+            if patterns:
+                st.markdown("**常用句式**:")
+                for p in patterns:
+                    st.markdown(f"- {p}")
+            st.markdown(f"**过程描述**: {wf.get('process_description', '')}")
 
-    # 导航按钮
+    findings = second_pass.get("findings", {})
+    with st.expander("🔍 核心发现"):
+        main_results = findings.get("main_results", [])
+        if main_results and isinstance(main_results, list):
+            st.markdown("### 主要发现")
+            for i, r in enumerate(main_results, 1):
+                if isinstance(r, dict):
+                    st.markdown(f"#### 发现 {i}: {r.get('finding', '')}")
+                    st.markdown(f"**详细描述**: {r.get('detail', '')}")
+                    st.markdown(f"**作者解释**: {r.get('interpretation', '')}")
+                else:
+                    st.markdown(f"- {r}")
+        else:
+            st.markdown(f"**主要发现**: {findings.get('main_results', '')}")
+        
+        st.markdown(f"**原文摘录**: {findings.get('original_text', '')}")
+        st.markdown(f"**假设检验结果**: {findings.get('hypothesis_test', '')}")
+        
+        inconsistency = findings.get('inconsistency_explanation', '')
+        if inconsistency:
+            st.warning(f"⚠️ **不一致解释**: {inconsistency}")
+        
+        ps = findings.get('presentation_style', {})
+        if ps:
+            st.markdown("---")
+            st.markdown("### 📊 结果呈现方式")
+            st.markdown(f"**图表**: {ps.get('figures_tables', '')}")
+            st.markdown(f"**设计学习点**: {ps.get('design_learning', '')}")
+
+    limitations = second_pass.get("limitations", {})
+    with st.expander("⚠️ 局限与展望"):
+        acknowledged = limitations.get("acknowledged_limitations", [])
+        if isinstance(acknowledged, list):
+            st.markdown("### 承认的局限性")
+            for lim in acknowledged:
+                st.markdown(f"- {lim}")
+        else:
+            st.markdown(f"**承认的局限性**: {acknowledged}")
+        
+        future = limitations.get("future_directions", [])
+        if isinstance(future, list):
+            st.markdown("### 未来研究方向")
+            for fd in future:
+                st.markdown(f"- {fd}")
+        else:
+            st.markdown(f"**未来方向**: {future}")
+        
+        st.markdown(f"**原文摘录**: {limitations.get('original_text', '')}")
+        st.markdown(f"**谦虚表达方式**: {limitations.get('humble_expression', '')}")
+        
+        wt = limitations.get('writing_technique', '')
+        if wt:
+            st.info(f"💡 **写作技巧**: {wt}")
+
+    wt = second_pass.get("writing_techniques", {})
+    if wt:
+        with st.expander("✍️ 写作技巧总结"):
+            st.markdown(f"**段落结构**: {wt.get('paragraph_structure', '')}")
+            
+            transitions = wt.get("transition_methods", [])
+            if transitions:
+                st.markdown("**过渡方式**:")
+                for t in transitions:
+                    st.markdown(f"- {t}")
+            
+            expressions = wt.get("useful_expressions", [])
+            if expressions:
+                st.markdown("### 值得学习的表达")
+                for item in expressions:
+                    if isinstance(item, dict):
+                        st.markdown(f"- {item.get('expression', '')}")
+                        if item.get('why_good'):
+                            st.markdown(f"  - 💡 **好在哪里**: {item.get('why_good', '')}")
+                        if item.get('usage'):
+                            st.markdown(f"  - 📝 **用法**: {item.get('usage', '')}")
+                    else:
+                        st.markdown(f"- {item}")
+
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
@@ -675,28 +942,174 @@ def render_learning_step_4(result: Dict[str, Any]):
 
     third_pass = result.get("third_pass", {})
 
-    # 学术脉络
-    with st.expander("🌐 学术脉络", expanded=True):
-        context = third_pass.get("academic_context", {})
-        st.markdown(f"**理论传统**: {context.get('theoretical_tradition', '')}")
-        st.markdown(f"**研究流派**: {context.get('research_school', '')}")
-        st.markdown(f"**引用网络**: {context.get('citation_network', '')}")
+    td = third_pass.get("theoretical_dialogue", {})
+    with st.expander("🌐 理论对话", expanded=True):
+        st.markdown(f"### 主要理论: {td.get('main_theory', '')}")
+        
+        theory_details = td.get("theory_details", {})
+        if theory_details:
+            st.markdown("#### 📚 理论详解")
+            st.markdown(f"**创始人及背景**: {theory_details.get('founder', '')}")
+            st.markdown(f"**核心观点**: {theory_details.get('core_propositions', '')}")
+            st.markdown(f"**发展脉络**: {theory_details.get('development_stages', '')}")
+            st.markdown(f"**重要变体**: {theory_details.get('important_variants', '')}")
+            st.markdown(f"**局限性与批评**: {theory_details.get('limitations_criticisms', '')}")
+        
+        st.markdown(f"**论文在理论脉络中的位置**: {td.get('paper_position', '')}")
+        
+        pc = td.get("paper_contribution", {})
+        if pc:
+            st.markdown("---")
+            st.markdown("#### 🎯 论文对理论的贡献")
+            st.success(f"**贡献类型**: {pc.get('type', '')}")
+            st.markdown(f"**具体说明**: {pc.get('details', '')}")
 
-    # 研究缺口
-    with st.expander("🔍 研究缺口"):
-        gaps = third_pass.get("research_gaps", {})
-        st.markdown(f"**理论缺口**: {gaps.get('theoretical_gap', '')}")
-        st.markdown(f"**方法缺口**: {gaps.get('methodological_gap', '')}")
-        st.markdown(f"**实证缺口**: {gaps.get('empirical_gap', '')}")
+    me = third_pass.get("method_evaluation", {})
+    with st.expander("� 研究方法评价"):
+        strengths = me.get("strengths", [])
+        if isinstance(strengths, list):
+            st.markdown("### ✅ 方法优点")
+            for s in strengths:
+                st.markdown(f"- {s}")
+        else:
+            st.markdown(f"**优点**: {strengths}")
+        
+        limitations = me.get("limitations", [])
+        if isinstance(limitations, list):
+            st.markdown("### ⚠️ 方法局限性")
+            for lim in limitations:
+                st.markdown(f"- {lim}")
+        else:
+            st.markdown(f"**局限性**: {limitations}")
+        
+        improvements = me.get("improvement_suggestions", [])
+        if improvements:
+            st.markdown("### 💡 改进建议")
+            for imp in improvements:
+                if isinstance(imp, dict):
+                    st.markdown(f"- **{imp.get('suggestion', '')}**: {imp.get('rationale', '')}")
+                else:
+                    st.markdown(f"- {imp}")
+        
+        transferable = me.get("transferable_applications", [])
+        if transferable:
+            st.markdown("### 🔄 可借鉴的应用领域")
+            for ta in transferable:
+                if isinstance(ta, dict):
+                    st.markdown(f"- **{ta.get('field', '')}**: {ta.get('how', '')}")
+                else:
+                    st.markdown(f"- {ta}")
 
-    # 未来方向
-    with st.expander("🚀 未来方向"):
-        future = third_pass.get("future_directions", {})
-        st.markdown(f"**可扩展性**: {future.get('scalability', '')}")
-        st.markdown(f"**可重复性**: {future.get('replicability', '')}")
-        st.markdown(f"**跨学科潜力**: {future.get('interdisciplinary_potential', '')}")
+    fs = third_pass.get("finding_significance", {})
+    with st.expander("🎯 核心发现的意义"):
+        st.markdown(f"**理论意义**: {fs.get('theoretical_meaning', '')}")
+        st.markdown(f"**实践价值**: {fs.get('practical_value', '')}")
+        
+        inspiration = fs.get("research_inspiration", [])
+        if inspiration:
+            st.markdown("### 💡 对后续研究的启发")
+            for ins in inspiration:
+                st.markdown(f"- {ins}")
+        
+        gen = fs.get("generalization", {})
+        if gen:
+            st.markdown("---")
+            st.markdown("### 🌍 可推广性")
+            st.markdown(f"**适用情境**: {gen.get('applicable_contexts', '')}")
+            st.markdown(f"**边界条件**: {gen.get('boundary_conditions', '')}")
 
-    # 导航按钮
+    tc = third_pass.get("theory_connection", {})
+    with st.expander("🔗 理论连接", expanded=True):
+        connection_type = tc.get("connection_type", "")
+        if "支持" in connection_type:
+            st.success(f"**连接类型**: {connection_type}")
+        elif "修正" in connection_type:
+            st.warning(f"**连接类型**: {connection_type}")
+        elif "拓展" in connection_type:
+            st.info(f"**连接类型**: {connection_type}")
+        elif "挑战" in connection_type:
+            st.error(f"**连接类型**: {connection_type}")
+        else:
+            st.markdown(f"**连接类型**: {connection_type}")
+        
+        st.markdown(f"**具体说明**: {tc.get('connection_details', '')}")
+        st.markdown(f"**支持证据**: {tc.get('evidence_support', '')}")
+        
+        implications = tc.get('implications', '')
+        if implications:
+            st.markdown(f"**对理论发展的意义**: {implications}")
+
+    rc = third_pass.get("research_connections", {})
+    with st.expander("📚 研究脉络"):
+        classic = rc.get("classic_studies", [])
+        if classic:
+            st.markdown("### 📖 对话的经典研究")
+            for cs in classic:
+                if isinstance(cs, dict):
+                    st.markdown(f"- **{cs.get('study', '')}**: {cs.get('connection', '')}")
+                else:
+                    st.markdown(f"- {cs}")
+        
+        recent = rc.get("recent_studies", [])
+        if recent:
+            st.markdown("### 📰 呼应或对比的近期研究")
+            for rs in recent:
+                if isinstance(rs, dict):
+                    st.markdown(f"- **{rs.get('study', '')}**: {rs.get('connection', '')}")
+                else:
+                    st.markdown(f"- {rs}")
+        
+        st.markdown(f"**在领域中的位置**: {rc.get('field_position', '')}")
+        
+        roadmap = rc.get("research_roadmap", {})
+        if roadmap:
+            st.markdown("---")
+            st.markdown("### 🗺️ 研究脉络图")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.info(f"**前人研究**\n\n{roadmap.get('previous', '')}")
+            with col2:
+                st.success(f"**本研究**\n\n{roadmap.get('current', '')}")
+            with col3:
+                st.warning(f"**后续方向**\n\n{roadmap.get('future', '')}")
+
+    ri = third_pass.get("research_inspiration", {})
+    with st.expander("💡 对你研究的启发"):
+        qi = ri.get("question_inspiration", {})
+        if isinstance(qi, dict):
+            st.markdown("### ❓ 研究问题的启发")
+            st.markdown(f"**启发**: {qi.get('insight', '')}")
+            st.markdown(f"**如何借鉴**: {qi.get('how_to_borrow', '')}")
+        else:
+            st.markdown(f"**研究问题启发**: {qi}")
+        
+        mb = ri.get("method_borrowing", {})
+        if isinstance(mb, dict):
+            st.markdown("### 🔬 方法借鉴")
+            st.markdown(f"**可以借鉴的方法**: {mb.get('what', '')}")
+            st.markdown(f"**具体如何借鉴**: {mb.get('how', '')}")
+        else:
+            st.markdown(f"**方法借鉴**: {mb}")
+        
+        ta = ri.get("theory_application", {})
+        if isinstance(ta, dict):
+            st.markdown("### 📚 理论框架应用")
+            st.markdown(f"**可以应用的理论**: {ta.get('what', '')}")
+            st.markdown(f"**具体如何应用**: {ta.get('how', '')}")
+        else:
+            st.markdown(f"**理论框架应用**: {ta}")
+        
+        extensions = ri.get("extension_directions", [])
+        if extensions:
+            st.markdown("### 🚀 可延伸的研究方向")
+            for i, ext in enumerate(extensions, 1):
+                if isinstance(ext, dict):
+                    st.markdown(f"#### 方向 {i}: {ext.get('direction', '')}")
+                    st.markdown(f"- **为什么值得研究**: {ext.get('rationale', '')}")
+                    st.markdown(f"- **可以怎么研究**: {ext.get('approach', '')}")
+                else:
+                    st.markdown(f"- {ext}")
+
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
@@ -1015,9 +1428,23 @@ def render_full_view(result: Dict[str, Any]):
 
     with st.expander("🔧 理论工具"):
         tools = first_pass.get("tools", {})
-        st.markdown(f"**理论框架**: {tools.get('theoretical_framework', '')}")
-        st.markdown(f"**研究方法**: {tools.get('research_method', '')}")
-        st.markdown(f"**数据来源**: {tools.get('data_source', '')}")
+        tf = tools.get("theoretical_framework", {})
+        if isinstance(tf, dict):
+            st.markdown(f"**理论框架**: {tf.get('name', '')}")
+        else:
+            st.markdown(f"**理论框架**: {tf}")
+        
+        rm = tools.get("research_method", {})
+        if isinstance(rm, dict):
+            st.markdown(f"**研究方法**: {rm.get('type', '')}")
+        else:
+            st.markdown(f"**研究方法**: {rm}")
+        
+        ds = tools.get("data_source", {})
+        if isinstance(ds, dict):
+            st.markdown(f"**数据来源**: {ds.get('description', '')}")
+        else:
+            st.markdown(f"**数据来源**: {ds}")
 
     with st.expander("🏆 核心贡献"):
         contribution = first_pass.get("contribution", {})

@@ -8,6 +8,7 @@ from app.core.agents import (
 from app.core.llm.llm_factory import LLMFactory
 from app.utils.log_util import logger
 from app.utils.error_handler import retry, handle_errors
+from app.utils.data_recorder import DataRecorder
 from app.schemas.A2A import PaperSplitOutput, SectionAnalysisOutput
 import os
 import json
@@ -50,8 +51,17 @@ class LiteratureWorkFlow(WorkFlow):
             if not api_key or not api_key.strip():
                 raise ValueError("API密钥不能为空，请在侧边栏输入Deepseek API密钥")
 
+            # 初始化数据记录器
+            data_recorder = DataRecorder(self.work_dir)
+
             llm_factory = LLMFactory(self.task_id)
             coordinator_llm, first_pass_llm, second_pass_llm, third_pass_llm = llm_factory.get_all_llms(api_key)
+            
+            # 设置数据记录器
+            coordinator_llm.set_data_recorder(data_recorder)
+            first_pass_llm.set_data_recorder(data_recorder)
+            second_pass_llm.set_data_recorder(data_recorder)
+            third_pass_llm.set_data_recorder(data_recorder)
 
             # ========== 第一阶段：基础分析 ==========
             
@@ -245,8 +255,17 @@ class LiteratureWorkFlow(WorkFlow):
 
             # 保存结果
             result_file = os.path.join(self.work_dir, "analysis_result.json")
-            with open(result_file, "w", encoding="utf-8") as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
+            
+            # 验证结果数据完整性
+            if not result:
+                logger.error("分析结果为空，无法保存")
+                raise ValueError("分析结果为空")
+            
+            # 使用数据记录器保存分析结果
+            data_recorder.save_analysis_result(result)
+            
+            # 打印统计摘要
+            data_recorder.print_summary()
 
             logger.info(f"工作流完成，结果保存到: {result_file}")
             return result
@@ -350,13 +369,11 @@ class PaperSplitWorkflow(WorkFlow):
 
         response = await third_pass_llm.chat(messages, agent_name="SectionAnalyzer")
 
-        import re
+        from app.utils.json_parser import extract_json_from_response
         response_text = response.choices[0].message.content
-        json_match = re.search(r'\{[\s\S]*\}', response_text, re.DOTALL)
+        result = extract_json_from_response(response_text)
 
-        if json_match:
-            result = json.loads(json_match.group(0))
-        else:
+        if not result:
             result = {"raw_analysis": response_text}
 
         result["section_name"] = section_name

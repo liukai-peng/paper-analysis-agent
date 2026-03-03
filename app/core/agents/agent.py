@@ -40,7 +40,19 @@ class Agent:
                 agent_name=self.__class__.__name__,
                 sub_title=sub_title,
             )
+            
+            # 确保响应对象存在且有有效的内容
+            if not response or not hasattr(response, 'choices') or not response.choices:
+                logger.error("模型响应为空或格式错误")
+                raise ValueError("模型响应为空或格式错误")
+            
             response_content = response.choices[0].message.content
+            
+            # 确保响应内容不为空
+            if not response_content or str(response_content).strip() == "":
+                logger.error("模型响应内容为空")
+                raise ValueError("模型响应内容为空")
+            
             self.chat_history.append({"role": "assistant", "content": response_content})
             logger.info(f"{self.__class__.__name__}:完成:执行对话")
             return response_content
