@@ -9,7 +9,12 @@ class LLM:
         self.model_name = model_name
         self.api_key = api_key
         self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.data_recorder = None
         logger.info(f"LLM初始化完成: model={model_name}, base_url={base_url}")
+
+    def set_data_recorder(self, recorder):
+        """设置数据记录器"""
+        self.data_recorder = recorder
 
     async def chat(self, history: list[dict], agent_name: str = "Agent", sub_title: str = "Task") -> object:
         """
@@ -53,9 +58,26 @@ class LLM:
                 model=self.model_name,
                 messages=history,
                 temperature=0.3,
-                max_tokens=4000
+                max_tokens=8192
             )
             logger.info(f"{agent_name}: 大模型调用完成 - {sub_title}")
+            
+            # 记录响应
+            if self.data_recorder:
+                logger.info(f"开始记录响应到数据记录器: {agent_name}")
+                try:
+                    self.data_recorder.append_chat_completion(response, agent_name)
+                    # 保存原始响应
+                    content = response.choices[0].message.content
+                    self.data_recorder.save_raw_response(content, agent_name, sub_title)
+                    logger.info(f"响应记录成功: {agent_name}")
+                except Exception as e:
+                    logger.error(f"数据记录器记录失败: {e}")
+                    import traceback
+                    traceback.print_exc()
+            else:
+                logger.warning(f"数据记录器未设置: {agent_name}")
+            
             return response
         except Exception as e:
             error_msg = str(e)

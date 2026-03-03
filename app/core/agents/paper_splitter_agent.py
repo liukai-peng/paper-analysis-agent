@@ -1,6 +1,7 @@
 from app.core.agents.agent import Agent
 from app.schemas.A2A import PaperSplitOutput
 from app.utils.log_util import logger
+from typing import List
 import json
 import re
 
@@ -57,6 +58,116 @@ class PaperSplitterAgent(Agent):
         super().__init__(task_id, model, max_chat_turns)
         self.system_prompt = PAPER_SPLITTER_PROMPT
 
+    def _remove_references(self, text: str) -> str:
+        """
+        去除参考文献及其后面的内容
+        
+        Args:
+            text: 原始论文文本
+            
+        Returns:
+            str: 去除参考文献后的文本
+        """
+        # 常见的参考文献标题模式（不区分大小写）
+        reference_patterns = [
+            r'\n\s*References\s*\n',
+            r'\n\s*REFERENCES\s*\n',
+            r'\n\s*参考文献\s*\n',
+            r'\n\s*Bibliography\s*\n',
+            r'\n\s*BIBLIOGRAPHY\s*\n',
+            r'\n\s*Citations\s*\n',
+            r'\n\s*CITATIONS\s*\n',
+            r'\n\s*Reference\s*\n',
+            r'\n\s*REFERENCE\s*\n',
+        ]
+        
+        # 查找第一个匹配的参考文献位置
+        for pattern in reference_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                # 找到参考文献的位置，返回前面的内容
+                result = text[:match.start()]
+                logger.info(f"检测到参考文献，已去除。原始长度: {len(text)}，处理后长度: {len(result)}")
+                return result
+        
+        # 如果没有找到参考文献，返回原文
+        return text
+
+    def _extract_key_sections(self, text: str) -> str:
+        """
+        提取关键部分（摘要、引言、结论等）
+        
+        Args:
+            text: 原始文本
+            
+        Returns:
+            str: 关键部分文本
+        """
+        # 提取摘要
+        abstract_patterns = [
+            r'\n\s*Abstract\s*\n[\s\S]*?\n\s*',
+            r'\n\s*ABSTRACT\s*\n[\s\S]*?\n\s*',
+            r'\n\s*摘要\s*\n[\s\S]*?\n\s*',
+        ]
+        
+        key_sections = []
+        
+        # 提取摘要
+        for pattern in abstract_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                key_sections.append("摘要:\n" + match.group(0))
+                break
+        
+        # 提取结论
+        conclusion_patterns = [
+            r'\n\s*Conclusion\s*\n[\s\S]*?\n\s*',
+            r'\n\s*CONCLUSION\s*\n[\s\S]*?\n\s*',
+            r'\n\s*结论\s*\n[\s\S]*?\n\s*',
+        ]
+        
+        for pattern in conclusion_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                key_sections.append("结论:\n" + match.group(0))
+                break
+        
+        # 如果没有找到摘要，取前5000字符作为简介
+        if not key_sections:
+            key_sections.append("简介:\n" + text[:5000])
+        
+        return "\n\n".join(key_sections)
+
+    def _split_into_chunks(self, text: str, chunk_size: int = 8000) -> List[str]:
+        """
+        将文本分块
+        
+        Args:
+            text: 原始文本
+            chunk_size: 每块大小
+            
+        Returns:
+            List[str]: 分块后的文本列表
+        """
+        chunks = []
+        current_chunk = ""
+        
+        # 按段落分块
+        paragraphs = text.split('\n')
+        
+        for paragraph in paragraphs:
+            if len(current_chunk) + len(paragraph) + 1 <= chunk_size:
+                current_chunk += paragraph + '\n'
+            else:
+                if current_chunk:
+                    chunks.append(current_chunk)
+                current_chunk = paragraph + '\n'
+        
+        if current_chunk:
+            chunks.append(current_chunk)
+        
+        return chunks
+
     async def run(self, full_text: str) -> PaperSplitOutput:
         """
         切分论文结构
@@ -69,15 +180,21 @@ class PaperSplitterAgent(Agent):
         """
         logger.info(f"PaperSplitterAgent: 开始切分论文，文本长度: {len(full_text)}")
 
+        # 去除参考文献及其后面的内容
+        full_text = self._remove_references(full_text)
+
+        # ========== 第一层：文档摘要 ==========
+        logger.info("PaperSplitterAgent: 第一层 - 提取关键部分")
+        key_sections = self._extract_key_sections(full_text)
+        logger.info(f"关键部分长度: {len(key_sections)} 字符")
+
         await self.append_chat_history(
             {"role": "system", "content": self.system_prompt}
         )
 
-        # 发送前3万字符进行分析（保留更多上下文）
-        text_to_analyze = full_text[:30000] if len(full_text) > 30000 else full_text
-
+        # 发送关键部分进行分析
         await self.append_chat_history(
-            {"role": "user", "content": f"请分析以下论文内容并切分结构：\n\n{text_to_analyze}"}
+            {"role": "user", "content": f"请分析以下论文关键部分并切分结构：\n\n{key_sections}"}
         )
 
         response = await self.model.chat(
